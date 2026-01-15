@@ -1,0 +1,21 @@
+[package]
+name = "sigma_runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4.5", features = ["derive"] }
+serde_json = "1"
+walkdir = "2.5"
+
+# sigma-engine (Git)
+sigma-engine = { git = "https://github.com/cawalch/sigma-engine.git" }
+
+[lib]
+name = "sigma_runner"
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "sigma_runner_cli"
+path = "src/main.rs"

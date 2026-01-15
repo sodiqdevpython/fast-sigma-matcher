@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36429.23 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SigmaMatcherFast", "SigmaMatcherFast.csproj", "{A7698129-7341-4956-987F-8D72BD676E97}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A7698129-7341-4956-987F-8D72BD676E97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7698129-7341-4956-987F-8D72BD676E97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7698129-7341-4956-987F-8D72BD676E97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7698129-7341-4956-987F-8D72BD676E97}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8533FFBE-00B7-4091-BA6A-E9311EE2B29E}
+	EndGlobalSection
+EndGlobal

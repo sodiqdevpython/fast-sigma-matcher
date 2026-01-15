@@ -1,0 +1,28 @@
+title: Suspicious WMI Usage via WMIC
+id: b9e2f4a0-2f1b-4c6a-9d9e-0a6d2f1d5a77
+status: experimental
+description: Detects wmic process calls that are frequently used for remote execution or discovery.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.execution
+  - attack.t1047
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    Image|endswith: '\wmic.exe'
+  selection_susp:
+    CommandLine|contains:
+      - ' process call create '
+      - ' /node:'
+      - ' path Win32_Process '
+  condition: selection_img and selection_susp
+fields:
+  - CommandLine
+  - User
+  - ParentImage
+falsepositives:
+  - IT management tools using WMIC (older environments)
+level: high

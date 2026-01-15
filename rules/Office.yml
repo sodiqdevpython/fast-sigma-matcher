@@ -1,0 +1,38 @@
+title: Office Spawning Suspicious Child Process
+id: 1d2dd87a-4d76-46bb-9d0b-1a1a5b0a8d11
+status: experimental
+description: Detects Microsoft Office applications spawning common LOLBins/shells.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.initial_access
+  - attack.execution
+  - attack.t1204.002
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_parent:
+    ParentImage|endswith:
+      - '\winword.exe'
+      - '\excel.exe'
+      - '\powerpnt.exe'
+      - '\outlook.exe'
+  selection_child:
+    Image|endswith:
+      - '\cmd.exe'
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\wscript.exe'
+      - '\cscript.exe'
+      - '\mshta.exe'
+      - '\rundll32.exe'
+      - '\regsvr32.exe'
+  condition: selection_parent and selection_child
+fields:
+  - ParentImage
+  - Image
+  - CommandLine
+falsepositives:
+  - Some add-ins and automation (investigate parent command line / document source)
+level: high

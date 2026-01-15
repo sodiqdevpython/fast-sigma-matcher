@@ -1,0 +1,32 @@
+title: Local User or Admin Group Modification via NET.EXE
+id: 6c9b8f1b-0f65-48c2-8d25-0c2a3f4c1c9e
+status: experimental
+description: Detects net.exe commands used to create users or add users to local administrators.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.persistence
+  - attack.t1136.001
+  - attack.t1098
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    Image|endswith:
+      - '\net.exe'
+      - '\net1.exe'
+  selection_cmd:
+    CommandLine|contains:
+      - ' user '
+      - ' localgroup '
+      - ' administrators '
+      - ' /add'
+  condition: selection_img and selection_cmd
+fields:
+  - CommandLine
+  - User
+  - ParentImage
+falsepositives:
+  - Legit admin operations / provisioning scripts
+level: high

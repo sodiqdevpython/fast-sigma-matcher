@@ -1,0 +1,30 @@
+title: PowerShell Encoded Command Usage
+id: 7b84f2b4-2a62-4e7f-8a65-8e2ef9f1d1a1
+status: experimental
+description: Detects PowerShell execution with encoded commands (-enc / -EncodedCommand) which is often used to obfuscate activity.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.execution
+  - attack.t1059.001
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+  selection_args:
+    CommandLine|contains:
+      - ' -enc '
+      - ' -encodedcommand '
+      - ' -e '
+  condition: selection_img and selection_args
+fields:
+  - Image
+  - CommandLine
+  - ParentImage
+falsepositives:
+  - Legitimate automation scripts using encoded commands
+level: medium

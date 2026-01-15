@@ -1,0 +1,2 @@
+{"Timestamp":"2026-01-15T10:35:00Z","EventID":1,"Channel":"Sysmon","Computer":"PC-01","User":"PC-01\\admin","Image":"C:\\Windows\\System32\\net.exe","ParentImage":"C:\\Windows\\System32\\cmd.exe","CommandLine":"net user backdoorP@ssw0rd P@ss123! /add"}
+{"Timestamp":"2026-01-15T10:35:05Z","EventID":1,"Channel":"Sysmon","Computer":"PC-01","User":"PC-01\\admin","Image":"C:\\Windows\\System32\\net.exe","ParentImage":"C:\\Windows\\System32\\cmd.exe","CommandLine":"net localgroup administrators backdoorP@ssw0rd /add"}

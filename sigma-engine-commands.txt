@@ -1,0 +1,8 @@
+Hamma rule larni load qilish va invalid larni print qilish uchun
+1) cargo run --release -- --rules "C:\Users\sodiq\Desktop\sigma\windows" load-info
+
+Folder bo'ylab scan qilish uchun bunda 1-arg loglar joylashgan folder ichma ich kira oladi, 2-arg bu jsonl fayllarga to'la folder
+2) cargo run --release -- --rules "C:\Users\sodiq\Desktop\sigma\windows" scan-jsonl-dir --logs "C:\path\to\logs"
+
+2-bilan bir xil faqat hits.tsv ga saqlaydi natijani print qilmay
+3) cargo run --release -- --rules "C:\Users\sodiq\Desktop\sigma\windows" scan-jsonl-dir --logs "C:\path\to\logs" --out "C:\path\to\hits.tsv"

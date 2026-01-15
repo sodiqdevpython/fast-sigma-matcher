@@ -1,0 +1,31 @@
+title: Executable Launched from Temp or AppData
+id: 44f1a4b9-46ae-4f92-bd7a-2f6f3e6bb9f7
+status: experimental
+description: Detects execution of binaries from user-writable paths often used by malware.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.execution
+  - attack.t1204
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_paths:
+    Image|contains:
+      - '\AppData\Local\Temp\'
+      - '\AppData\Roaming\'
+      - '\Users\Public\'
+  selection_ext:
+    Image|endswith:
+      - '.exe'
+      - '.dll'
+  condition: selection_paths and selection_ext
+fields:
+  - Image
+  - CommandLine
+  - User
+  - ParentImage
+falsepositives:
+  - Legit installers/updaters that stage in Temp (verify signature/hash)
+level: medium

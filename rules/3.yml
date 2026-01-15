@@ -1,0 +1,25 @@
+title: Scheduled Task Created via Schtasks
+id: 96f01d46-7e4c-4e83-8c2b-5d1b42b7c0f1
+status: experimental
+description: Detects creation of scheduled tasks using schtasks.exe which can be used for persistence.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.persistence
+  - attack.t1053.005
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection:
+    Image|endswith: '\schtasks.exe'
+    CommandLine|contains:
+      - ' /create'
+  condition: selection
+fields:
+  - CommandLine
+  - User
+  - ParentImage
+falsepositives:
+  - Legitimate task creation by IT tools
+level: medium

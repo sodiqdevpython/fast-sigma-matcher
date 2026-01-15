@@ -1,0 +1,34 @@
+title: Registry Run Key Persistence
+id: 9d1d4f16-8be2-4f67-9ff5-3e2d85a8b6b3
+status: experimental
+description: Detects modifications to Run/RunOnce keys that enable persistence.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.persistence
+  - attack.t1547.001
+logsource:
+  product: windows
+  category: registry_set
+detection:
+  selection_event:
+    EventID: 13
+  selection_keys:
+    TargetObject|contains:
+      - '\Software\Microsoft\Windows\CurrentVersion\Run'
+      - '\Software\Microsoft\Windows\CurrentVersion\RunOnce'
+  selection_data:
+    Details|contains:
+      - '\AppData\'
+      - '\Temp\'
+      - 'powershell'
+      - 'cmd.exe'
+  condition: selection_event and selection_keys and selection_data
+fields:
+  - TargetObject
+  - Details
+  - Image
+  - User
+falsepositives:
+  - Some legitimate apps auto-start from AppData (browser updaters, chat apps)
+level: high

@@ -1,0 +1,2 @@
+{"Timestamp":"2026-01-15T10:05:00Z","EventID":1,"Channel":"Sysmon","Computer":"PC-01","User":"PC-01\\admin","Image":"C:\\Tools\\procdump64.exe","ParentImage":"C:\\Windows\\System32\\cmd.exe","CommandLine":"procdump64.exe -accepteula -ma lsass.exe C:\\Users\\Public\\lsass.dmp"}
+{"Timestamp":"2026-01-15T10:05:03Z","EventID":1,"Channel":"Sysmon","Computer":"PC-01","User":"PC-01\\admin","Image":"C:\\Windows\\System32\\tasklist.exe","ParentImage":"C:\\Windows\\System32\\cmd.exe","CommandLine":"tasklist.exe /FI \"IMAGENAME eq lsass.exe\""}

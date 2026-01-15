@@ -1,0 +1,34 @@
+title: ProcDump Targeting LSASS
+id: 2a2b3c2e-8e4f-4f23-90b4-0d0b2df7d4c2
+status: experimental
+description: Detects ProcDump usage targeting lsass.exe, a common credential dumping technique.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.credential_access
+  - attack.t1003.001
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_procdump:
+    Image|endswith:
+      - '\procdump.exe'
+      - '\procdump64.exe'
+  selection_target:
+    CommandLine|contains:
+      - ' lsass'
+      - ' lsass.exe'
+  selection_flags:
+    CommandLine|contains:
+      - ' -ma'
+      - ' -mm'
+  condition: selection_procdump and selection_target and (selection_flags or selection_target)
+fields:
+  - Image
+  - CommandLine
+  - User
+  - ParentImage
+falsepositives:
+  - Memory troubleshooting by admins (rare, but possible)
+level: high

@@ -1,0 +1,28 @@
+title: Suspicious Rundll32 Script/Protocol Handler Execution
+id: 3c8f6e16-6bdf-4b30-a223-5d5f6c1f0c3a
+status: experimental
+description: Detects rundll32 used with common script/protocol handler patterns.
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.defense_evasion
+  - attack.t1218.011
+logsource:
+  product: windows
+  category: process_creation
+detection:
+  selection_img:
+    Image|endswith: '\rundll32.exe'
+  selection_susp:
+    CommandLine|contains:
+      - 'javascript:'
+      - 'vbscript:'
+      - 'scrobj.dll'
+      - 'url.dll,FileProtocolHandler'
+  condition: selection_img and selection_susp
+fields:
+  - CommandLine
+  - ParentImage
+falsepositives:
+  - Rare legacy/automation usage
+level: high

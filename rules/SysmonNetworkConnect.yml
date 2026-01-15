@@ -1,0 +1,36 @@
+title: PowerShell or CMD Network Connection (Sysmon)
+id: 0d0f1c2a-6d1d-4d38-a7cb-4e0a6a9e0f55
+status: experimental
+description: Detects network connections initiated by powershell.exe or cmd.exe (Sysmon EventID 3).
+author: ChatGPT
+date: 2026-01-15
+tags:
+  - attack.command_and_control
+  - attack.t1071
+logsource:
+  product: windows
+  category: network_connection
+detection:
+  selection_event:
+    EventID: 3
+  selection_proc:
+    Image|endswith:
+      - '\powershell.exe'
+      - '\pwsh.exe'
+      - '\cmd.exe'
+  selection_ports:
+    DestinationPort:
+      - 80
+      - 443
+      - 8080
+  condition: selection_event and selection_proc and selection_ports
+fields:
+  - Image
+  - User
+  - DestinationIp
+  - DestinationHostname
+  - DestinationPort
+  - CommandLine
+falsepositives:
+  - Legit scripts downloading updates or calling APIs
+level: medium
