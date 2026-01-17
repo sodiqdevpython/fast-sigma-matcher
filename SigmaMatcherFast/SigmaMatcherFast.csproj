@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SigmaEngineFast.cs" />
+    <Compile Include="SigmaEngine.cs" />
     <Compile Include="SigmaNative.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,16 +1,16 @@
-use anyhow::{anyhow, Result};
+use anyhow::{ anyhow, Result };
 use serde_json::Value;
 use std::{
     cell::RefCell,
     collections::HashSet,
     fs,
-    io::{BufRead, BufReader},
-    path::{Path, PathBuf},
+    io::{ BufRead, BufReader },
+    path::{ Path, PathBuf },
 };
 use walkdir::WalkDir;
 
 // sigma-engine API
-use sigma_engine::{EngineConfig, SigmaEngine};
+use sigma_engine::{ EngineConfig, SigmaEngine };
 
 #[derive(Debug, Clone)]
 pub struct InvalidRule {
@@ -27,8 +27,8 @@ struct RuleDoc {
 pub struct SigmaRuntime {
     rules_dir: PathBuf,
     engine: SigmaEngine,
-    rule_paths: Vec<PathBuf>, // index -> path
-    rules: Vec<RuleDoc>,      // reload uchun
+    rule_paths: Vec<PathBuf>, // index path uchun
+    rules: Vec<RuleDoc>, // reload uchun
     invalid: Vec<InvalidRule>,
 }
 
@@ -37,7 +37,10 @@ impl SigmaRuntime {
         let rules_dir = rules_dir.as_ref().to_path_buf();
         let rules = load_rule_files_recursive(&rules_dir)?;
         let (engine, invalid) = build_engine_with_invalid_detection(&rules)?;
-        let rule_paths = rules.iter().map(|r| r.path.clone()).collect();
+        let rule_paths = rules
+            .iter()
+            .map(|r| r.path.clone())
+            .collect();
 
         Ok(Self {
             rules_dir,
@@ -51,7 +54,10 @@ impl SigmaRuntime {
     pub fn reload(&mut self) -> Result<()> {
         let rules = load_rule_files_recursive(&self.rules_dir)?;
         let (engine, invalid) = build_engine_with_invalid_detection(&rules)?;
-        self.rule_paths = rules.iter().map(|r| r.path.clone()).collect();
+        self.rule_paths = rules
+            .iter()
+            .map(|r| r.path.clone())
+            .collect();
         self.rules = rules;
         self.engine = engine;
         self.invalid = invalid;
@@ -74,29 +80,27 @@ impl SigmaRuntime {
         self.rule_paths.get(idx as usize).map(|p| p.as_path())
     }
 
-    /// Real-time: bitta JSON line bytes → matched rule indexlar (u32)
     pub fn evaluate_json_line_bytes(&mut self, json_line: &[u8]) -> Result<Vec<u32>> {
-        let event: Value = serde_json::from_slice(json_line)
+        let event: Value = serde_json
+            ::from_slice(json_line)
             .map_err(|e| anyhow!("JSON parse error: {e}"))?;
 
-        let res = self
-            .engine
+        let res = self.engine
             .evaluate(&event)
             .map_err(|e| anyhow!("engine.evaluate error: {e:?}"))?;
 
-        Ok(res.matched_rules) // Vec<u32>
+        Ok(res.matched_rules) // Vec<u32> qaytaradi
     }
 }
 
-/// Recursive *.yml / *.yaml yig‘adi (index stabil bo‘lishi uchun sort qiladi)
+/// Recursive *.yml / *.yaml yig'adi
 fn load_rule_files_recursive(rules_dir: &Path) -> Result<Vec<RuleDoc>> {
     let mut out = Vec::new();
 
     for entry in WalkDir::new(rules_dir)
         .follow_links(false)
         .into_iter()
-        .filter_map(|e| e.ok())
-    {
+        .filter_map(|e| e.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -112,7 +116,8 @@ fn load_rule_files_recursive(rules_dir: &Path) -> Result<Vec<RuleDoc>> {
             continue;
         }
 
-        let yaml = fs::read_to_string(path)
+        let yaml = fs
+            ::read_to_string(path)
             .map_err(|e| anyhow!("Failed to read rule file {:?}: {}", path, e))?;
 
         out.push(RuleDoc {
@@ -125,8 +130,10 @@ fn load_rule_files_recursive(rules_dir: &Path) -> Result<Vec<RuleDoc>> {
     Ok(out)
 }
 
-/// Engine build + invalid rule pathlarni topish (bisection)
-fn build_engine_with_invalid_detection(rules: &[RuleDoc]) -> Result<(SigmaEngine, Vec<InvalidRule>)> {
+/// Engine build + invalid rule pathlarni topish
+fn build_engine_with_invalid_detection(
+    rules: &[RuleDoc]
+) -> Result<(SigmaEngine, Vec<InvalidRule>)> {
     if rules.is_empty() {
         return Err(anyhow!("No rule files found"));
     }
@@ -141,8 +148,9 @@ fn build_engine_with_invalid_detection(rules: &[RuleDoc]) -> Result<(SigmaEngine
     let invalid_set: HashSet<usize> = invalid_idxs.iter().copied().collect();
     let valid_idxs: Vec<usize> = (0..rules.len()).filter(|i| !invalid_set.contains(i)).collect();
 
-    let engine = try_build_engine(rules, &valid_idxs)
-        .map_err(|e| anyhow!("Engine build failed even after removing invalid rules: {e}"))?;
+    let engine = try_build_engine(rules, &valid_idxs).map_err(|e|
+        anyhow!("Engine build failed even after removing invalid rules: {e}")
+    )?;
 
     let mut invalid = Vec::new();
     for &i in &invalid_idxs {
@@ -191,10 +199,6 @@ fn find_invalid_indices_bisect(rules: &[RuleDoc], idxs: &[usize]) -> Vec<usize> 
     left
 }
 
-/* ===========================
-   FFI (Rust DLL exports)
-   =========================== */
-
 #[repr(C)]
 pub struct SigmaBuffer {
     pub ptr: *mut u8,
@@ -207,11 +211,12 @@ thread_local! {
 
 fn set_last_error(msg: impl AsRef<str>) {
     let s = msg.as_ref().as_bytes().to_vec();
-    LAST_ERROR.with(|e| *e.borrow_mut() = s);
+    LAST_ERROR.with(|e| {
+        *e.borrow_mut() = s;
+    });
 }
 
 fn ok_buf(v: Vec<u8>) -> SigmaBuffer {
-    // Box<[u8]> qilib leak qilamiz (free uchun alohida func bor)
     let len = v.len();
     let boxed: Box<[u8]> = v.into_boxed_slice();
     let ptr = Box::into_raw(boxed) as *mut u8;
@@ -232,17 +237,13 @@ unsafe fn utf8_from_ptr(ptr: *const u8, len: usize) -> Result<&'static str> {
     }
     let slice = std::slice::from_raw_parts(ptr, len);
     let s = std::str::from_utf8(slice).map_err(|e| anyhow!("utf8 error: {e}"))?;
-    // C# tomonda string bytes lifetime mustaqil; bu yerda faqat call ichida ishlatamiz,
-    // shuning uchun &'static kerak emas aslida. Lekin funksiyalar ichida darhol ishlatamiz.
-    // Shu sababli: leak qilmasdan ishlatish uchun, pastdagi calllarda `to_string()` qilamiz.
     Ok(std::mem::transmute::<&str, &'static str>(s))
 }
 
-/// INIT: rules_dir UTF-8 (ptr+len) → handle
 #[no_mangle]
 pub extern "C" fn sigma_init(rules_ptr: *const u8, rules_len: usize) -> *mut SigmaRuntime {
     let res = (|| -> Result<*mut SigmaRuntime> {
-        let rules_dir = unsafe { utf8_from_ptr(rules_ptr, rules_len)? }.to_string();
+        let rules_dir = (unsafe { utf8_from_ptr(rules_ptr, rules_len)? }).to_string();
         let rt = SigmaRuntime::load(&rules_dir)?;
         Ok(Box::into_raw(Box::new(rt)))
     })();
@@ -266,14 +267,13 @@ pub extern "C" fn sigma_destroy(handle: *mut SigmaRuntime) {
     }
 }
 
-/// Reload rules (tahrir/o‘chirish/qo‘shish bo‘lsa)
 #[no_mangle]
 pub extern "C" fn sigma_reload(handle: *mut SigmaRuntime) -> i32 {
     if handle.is_null() {
         set_last_error("sigma_reload: null handle");
         return 0;
     }
-    let r = unsafe { &mut *handle }.reload();
+    let r = (unsafe { &mut *handle }).reload();
     match r {
         Ok(_) => 1,
         Err(e) => {
@@ -283,8 +283,6 @@ pub extern "C" fn sigma_reload(handle: *mut SigmaRuntime) -> i32 {
     }
 }
 
-/// 1 marta rule pathlar ro‘yxatini olib C# da cache qiling
-/// Format: u32 count, then [u32 len + bytes] * count
 #[no_mangle]
 pub extern "C" fn sigma_get_rule_paths(handle: *mut SigmaRuntime) -> SigmaBuffer {
     if handle.is_null() {
@@ -307,8 +305,7 @@ pub extern "C" fn sigma_get_rule_paths(handle: *mut SigmaRuntime) -> SigmaBuffer
     ok_buf(out)
 }
 
-/// Invalid rules list (xohlasangiz C# ga ko‘rsatish uchun)
-/// Format: u32 count, then [u32 path_len + path_bytes + u32 err_len + err_bytes] * count
+/// Invalid rules list C# ga ko‘rsatishim uchun
 #[no_mangle]
 pub extern "C" fn sigma_get_invalid_rules(handle: *mut SigmaRuntime) -> SigmaBuffer {
     if handle.is_null() {
@@ -335,22 +332,13 @@ pub extern "C" fn sigma_get_invalid_rules(handle: *mut SigmaRuntime) -> SigmaBuf
     ok_buf(out)
 }
 
-/// JSONL file scan (har file uchun 1 call)
-/// Return format:
-/// u32 version=1
-/// u32 hit_count
-/// repeated hit:
-///   u32 line_no
-///   u32 rule_idx
-///   u32 line_len
-///   [line bytes...]
 #[no_mangle]
 pub extern "C" fn sigma_scan_jsonl_file(
     handle: *mut SigmaRuntime,
     path_ptr: *const u8,
     path_len: usize,
     include_line: u8,
-    max_line_bytes: u32,
+    max_line_bytes: u32
 ) -> SigmaBuffer {
     let res = (|| -> Result<SigmaBuffer> {
         if handle.is_null() {
@@ -358,13 +346,13 @@ pub extern "C" fn sigma_scan_jsonl_file(
         }
         let rt = unsafe { &mut *handle };
 
-        let path = unsafe { utf8_from_ptr(path_ptr, path_len)? }.to_string();
+        let path = (unsafe { utf8_from_ptr(path_ptr, path_len)? }).to_string();
         let f = fs::File::open(&path)?;
         let mut reader = BufReader::new(f);
 
         let mut out: Vec<u8> = Vec::with_capacity(64 * 1024);
-        out.extend_from_slice(&1u32.to_le_bytes()); // version
-        out.extend_from_slice(&0u32.to_le_bytes()); // hit_count placeholder
+        out.extend_from_slice(&(1u32).to_le_bytes()); // version
+        out.extend_from_slice(&(0u32).to_le_bytes()); // hit_count placeholderga
         let mut hit_count: u32 = 0;
 
         let mut buf: Vec<u8> = Vec::with_capacity(16 * 1024);
@@ -385,13 +373,15 @@ pub extern "C" fn sigma_scan_jsonl_file(
 
             let matched = match rt.evaluate_json_line_bytes(slice) {
                 Ok(m) => m,
-                Err(_) => continue,
+                Err(_) => {
+                    continue;
+                }
             };
             if matched.is_empty() {
                 continue;
             }
 
-            // include_line bo‘lsa — faqat HIT bo‘lganda line bytes’ni olamiz
+            // include_line bo'lsa — faqat HIT bo'lganda line bytes ni olishimga
             let mut line_bytes: &[u8] = &[];
             let mut line_len_u32: u32 = 0;
 
@@ -414,7 +404,6 @@ pub extern "C" fn sigma_scan_jsonl_file(
             }
         }
 
-        // hit_count ni joyiga yozib qo‘yamiz (offset 4..8)
         out[4..8].copy_from_slice(&hit_count.to_le_bytes());
 
         Ok(ok_buf(out))
@@ -426,7 +415,6 @@ pub extern "C" fn sigma_scan_jsonl_file(
     }
 }
 
-/// Last error’ni olish (UTF-8 buffer). O‘qib bo‘lgach free qiling.
 #[no_mangle]
 pub extern "C" fn sigma_take_last_error() -> SigmaBuffer {
     let mut v = Vec::new();
@@ -439,7 +427,6 @@ pub extern "C" fn sigma_take_last_error() -> SigmaBuffer {
     ok_buf(v)
 }
 
-/// Rust qaytargan barcha SigmaBuffer’larni C# shu bilan free qiladi
 #[no_mangle]
 pub extern "C" fn sigma_free_buffer(buf: SigmaBuffer) {
     if buf.ptr.is_null() || buf.len == 0 {
@@ -459,14 +446,13 @@ fn trim_eol(buf: &[u8]) -> &[u8] {
     &buf[..end]
 }
 
-
 #[no_mangle]
 pub extern "C" fn sigma_eval_json_line(
     handle: *mut SigmaRuntime,
     json_ptr: *const u8,
     json_len: usize,
     include_line: u8,
-    max_line_bytes: u32,
+    max_line_bytes: u32
 ) -> SigmaBuffer {
     let res = (|| -> Result<SigmaBuffer> {
         if handle.is_null() {
@@ -482,16 +468,15 @@ pub extern "C" fn sigma_eval_json_line(
         let matched = rt.evaluate_json_line_bytes(json).unwrap_or_default();
         if matched.is_empty() {
             let mut out = Vec::new();
-            out.extend_from_slice(&1u32.to_le_bytes());
-            out.extend_from_slice(&0u32.to_le_bytes());
+            out.extend_from_slice(&(1u32).to_le_bytes());
+            out.extend_from_slice(&(0u32).to_le_bytes());
             return Ok(ok_buf(out));
         }
 
         let mut out: Vec<u8> = Vec::with_capacity(64);
-        out.extend_from_slice(&1u32.to_le_bytes()); // version
+        out.extend_from_slice(&(1u32).to_le_bytes());
         out.extend_from_slice(&(matched.len() as u32).to_le_bytes());
 
-        // include_line bo‘lsa: line’ni (qirqib) har hitga qo‘shamiz
         let mut line_bytes: &[u8] = &[];
         let mut line_len_u32: u32 = 0;
         if include_line != 0 {
@@ -502,7 +487,7 @@ pub extern "C" fn sigma_eval_json_line(
         }
 
         for idx in matched {
-            out.extend_from_slice(&1u32.to_le_bytes()); // line_no=1
+            out.extend_from_slice(&(1u32).to_le_bytes());
             out.extend_from_slice(&idx.to_le_bytes());
             out.extend_from_slice(&line_len_u32.to_le_bytes());
             if line_len_u32 != 0 {

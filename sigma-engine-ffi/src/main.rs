@@ -1,9 +1,9 @@
-use anyhow::{anyhow, Result};
-use clap::{Parser, Subcommand};
+use anyhow::{ anyhow, Result };
+use clap::{ Parser, Subcommand };
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, BufWriter, LineWriter, Write},
-    path::{Path, PathBuf},
+    io::{ self, BufRead, BufReader, BufWriter, LineWriter, Write },
+    path::{ Path, PathBuf },
     time::Instant,
 };
 use walkdir::WalkDir;
@@ -13,7 +13,7 @@ use sigma_runner::SigmaRuntime;
 #[derive(Parser)]
 #[command(author, version, about)]
 struct Cli {
-    /// Sigma rules root folder (ichma-ich bo‘lishi mumkin)
+    /// Sigma rules root folder ni olishim uchun kerak
     #[arg(long)]
     rules: PathBuf,
 
@@ -23,31 +23,30 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Faqat load qiladi va valid/invalid listni chiqaradi
+    /// Faqat load qiladi va valid, invalid listni chiqaradi
     LoadInfo,
 
-    /// STDIN dan JSON line o‘qiydi (real-time) va match bo‘lsa darhol chiqaradi
     Repl,
 
-    /// JSONL folder scan: hamma *.jsonl ni ketma-ket o‘qiydi
+    /// JSONL folder scan: hamma *.jsonl ni ketma-ket o'qishi uchun kerak
     ScanJsonlDir {
         #[arg(long)]
         logs: PathBuf,
 
-        /// ixtiyoriy: natijani filega yozish (yo‘q bo‘lsa stdout)
+        /// ixtiyoriy: natijani filega yozishim uchun kerak lekin c# dan chaqirmasam kerak
         #[arg(long)]
         out: Option<PathBuf>,
 
-        /// HIT bo‘lganda o‘sha JSON log line’ni ham chiqarsin
+        /// HIT bo'lganda o'sha JSON log line ni ham chiqarishi uchun
         #[arg(long, default_value_t = false)]
         include_line: bool,
 
-        /// include_line=true bo‘lsa, log line uzunligini cheklash
+        /// include_line=true bo'lsa log line uzunligini cheklash
         #[arg(long, default_value_t = 4096)]
         max_line_bytes: usize,
     },
 
-    /// Qo‘lda reload test
+    /// Qo'lda reload test
     ReloadTest,
 }
 
@@ -75,8 +74,6 @@ fn main() -> Result<()> {
         }
 
         Command::Repl => {
-            println!("READY. Paste JSON lines (1 line = 1 JSON object). Ctrl+Z + Enter to exit.");
-
             let stdin = io::stdin();
             let mut reader = BufReader::new(stdin.lock());
 
@@ -114,17 +111,13 @@ fn main() -> Result<()> {
             }
         }
 
-        Command::ScanJsonlDir {
-            logs,
-            out,
-            include_line,
-            max_line_bytes,
-        } => {
-            // stdout real-time ko‘rinishi uchun LineWriter
+        Command::ScanJsonlDir { logs, out, include_line, max_line_bytes } => {
+            // stdout real-time ko'rinishi uchun LineWriter
             let mut writer: Box<dyn Write> = match out {
                 Some(path) => {
-                    let f = File::create(&path)
-                        .map_err(|e| anyhow!("Failed to create output file {:?}: {}", path, e))?;
+                    let f = File::create(&path).map_err(|e|
+                        anyhow!("Failed to create output file {:?}: {}", path, e)
+                    )?;
                     Box::new(BufWriter::new(f))
                 }
                 None => Box::new(LineWriter::new(io::stdout())),
@@ -138,8 +131,9 @@ fn main() -> Result<()> {
             let mut total_hits: u64 = 0;
 
             for file_path in files {
-                let f = File::open(&file_path)
-                    .map_err(|e| anyhow!("Failed to open {:?}: {}", file_path, e))?;
+                let f = File::open(&file_path).map_err(|e|
+                    anyhow!("Failed to open {:?}: {}", file_path, e)
+                )?;
                 let mut reader = BufReader::new(f);
 
                 let mut buf: Vec<u8> = Vec::with_capacity(16 * 1024);
@@ -165,7 +159,7 @@ fn main() -> Result<()> {
                                 continue;
                             }
 
-                            // line’ni faqat HIT bo‘lsa stringga aylantiramiz (tezlik uchun)
+                            // line ni faqat HIT bo'lsa stringga aylantirishim uchun
                             let mut line_str = String::new();
                             if include_line {
                                 let slice2 = if slice.len() > max_line_bytes {
@@ -175,8 +169,11 @@ fn main() -> Result<()> {
                                 };
 
                                 line_str = String::from_utf8_lossy(slice2).to_string();
-                                // TSV buzilmasin
-                                line_str = line_str.replace('\t', " ").replace('\r', " ").replace('\n', " ");
+                                // TSV ni saqlab turishim uchun tushunarli qilib
+                                line_str = line_str
+                                    .replace('\t', " ")
+                                    .replace('\r', " ")
+                                    .replace('\n', " ");
                             }
 
                             for idx in matched {
@@ -209,9 +206,7 @@ fn main() -> Result<()> {
                                 }
                             }
                         }
-                        Err(_) => {
-                            // xohlasangiz bu yerda parse/eval errorlarni ham log qilamiz
-                        }
+                        Err(_) => {}
                     }
                 }
             }
@@ -226,17 +221,9 @@ fn main() -> Result<()> {
         }
 
         Command::ReloadTest => {
-            println!(
-                "Before: total={} invalid={}",
-                rt.total_rules(),
-                rt.invalid_rules().len()
-            );
+            println!("Before: total={} invalid={}", rt.total_rules(), rt.invalid_rules().len());
             rt.reload()?;
-            println!(
-                "After : total={} invalid={}",
-                rt.total_rules(),
-                rt.invalid_rules().len()
-            );
+            println!("After : total={} invalid={}", rt.total_rules(), rt.invalid_rules().len());
         }
     }
 
@@ -248,8 +235,7 @@ fn collect_jsonl_files(root: &Path) -> Result<Vec<PathBuf>> {
     for entry in WalkDir::new(root)
         .follow_links(false)
         .into_iter()
-        .filter_map(|e| e.ok())
-    {
+        .filter_map(|e| e.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }

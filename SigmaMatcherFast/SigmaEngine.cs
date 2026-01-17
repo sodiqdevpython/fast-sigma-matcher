@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace SigmaMatcherFast.Sigma
 {
-    public sealed unsafe class SigmaEngineFast : IDisposable
+    public sealed unsafe class SigmaEngine : IDisposable
     {
         private IntPtr _handle;
         private string[] _rulePaths;
 
         public string[] RulePaths => _rulePaths ?? Array.Empty<string>();
 
-        public SigmaEngineFast(string rulesDir)
+        public SigmaEngine(string rulesDir)
         {
             if (string.IsNullOrWhiteSpace(rulesDir))
-                throw new ArgumentException("rulesDir is empty");
+                throw new ArgumentException("rulesDir bo'sh bo'lmasligi kerak");
 
             byte[] r = SigmaNative.Utf8Bytes(rulesDir);
 
@@ -26,7 +25,7 @@ namespace SigmaMatcherFast.Sigma
             }
 
             if (_handle == IntPtr.Zero)
-                throw new Exception("sigma_init failed: " + SigmaNative.TakeLastError());
+                throw new Exception("sigma_init da xato berdi: " + SigmaNative.TakeLastError());
         }
 
         public void Dispose()
@@ -43,7 +42,7 @@ namespace SigmaMatcherFast.Sigma
             Ensure();
             int ok = SigmaNative.sigma_reload(_handle);
             if (ok == 0)
-                throw new Exception("sigma_reload failed: " + SigmaNative.TakeLastError());
+                throw new Exception("sigma_reload ishlamadi qaytadan init qilish kerak: " + SigmaNative.TakeLastError());
 
             _rulePaths = null;
         }
@@ -55,7 +54,7 @@ namespace SigmaMatcherFast.Sigma
 
             var buf = SigmaNative.sigma_get_rule_paths(_handle);
             if (buf.ptr == IntPtr.Zero)
-                throw new Exception("sigma_get_rule_paths failed: " + SigmaNative.TakeLastError());
+                throw new Exception("sigma_get_rule_paths xato ishladi u paht bo'masa kerak: " + SigmaNative.TakeLastError());
 
             try
             {
@@ -91,7 +90,7 @@ namespace SigmaMatcherFast.Sigma
             Ensure();
             if (onHit == null) throw new ArgumentNullException(nameof(onHit));
             if (string.IsNullOrWhiteSpace(jsonlPath))
-                throw new ArgumentException("jsonlPath is empty");
+                throw new ArgumentException("jsonlPath bo'sh bo'lmasin");
 
             if (_rulePaths == null) LoadRulePathsOnce();
 
@@ -109,7 +108,7 @@ namespace SigmaMatcherFast.Sigma
             }
 
             if (buf.ptr == IntPtr.Zero)
-                throw new Exception("sigma_scan_jsonl_file failed: " + SigmaNative.TakeLastError());
+                throw new Exception("sigma_scan_jsonl_file funksiya ishlamadi: " + SigmaNative.TakeLastError());
 
             try
             {
@@ -197,7 +196,7 @@ namespace SigmaMatcherFast.Sigma
         private void Ensure()
         {
             if (_handle == IntPtr.Zero)
-                throw new ObjectDisposedException(nameof(SigmaEngineFast));
+                throw new ObjectDisposedException(nameof(SigmaEngine));
         }
 
         private static uint ReadU32(ref byte* p, byte* end)
